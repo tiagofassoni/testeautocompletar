@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>jQuery UI Autocomplete - Accent folding</title>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="/resources/demos/style.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script>
+  $( function() {
+    dados_galerinha = null;
+    names = [];
+    treta = $.getJSON('teste.json', function(data) {
+      dados_galerinha = data;
+      jQuery.each(data, function(index, value) {
+        names.push(value.Nome);
+      });
+    });
+    // var names = [ "Jörn Zaefferer", "Scott González", "John Resig" ];
+ 
+    var accentMap = {
+      "á": "a",
+      "à": "a",
+      "ã": "a",
+      "é":"e",
+      "ê":"e",
+      "õ":"o",
+      "ç":"c"
+    };
+    var normalize = function( term ) {
+      var ret = "";
+      for ( var i = 0; i < term.length; i++ ) {
+        ret += accentMap[ term.charAt(i) ] || term.charAt(i);
+      }
+      ret = ret.replace(/\b(dos|das)\b/i, 'dos');
+
+      ret = ret.replace(/\b(de|do|da)\b/i, 'de');
+      return ret;
+    };
+ 
+    $( "#developer" ).autocomplete({
+      source: function( request, response ) {
+        var matcher = new RegExp( $.ui.autocomplete.escapeRegex( request.term ), "i" );
+        response( $.grep( names, function( value ) {
+          value = value.label || value.value || value;
+          return matcher.test( value ) || matcher.test( normalize( value ) );
+        }) );
+      }
+    });
+  } );
+  </script>
+</head>
+<body>
+ 
+<div class="ui-widget">
+  <form>
+  <label for="developer">Entidade: </label>
+  <input id="developer">
+  </form>
+</div>
+ 
+ 
+</body>
+</html>
