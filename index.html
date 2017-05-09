@@ -4,52 +4,131 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>jQuery UI Autocomplete - Accent folding</title>
-  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="jquery-ui-1.12.1/jquery-ui.css">
   <link rel="stylesheet" href="/resources/demos/style.css">
-  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="jquery-3.2.1.min.js"></script>
+  <script src="jquery-ui-1.12.1/jquery-ui.js"></script>
+  <script src="https://unpkg.com/js-search@1.4.2/dist/umd/js-search.min.js"></script>
+  <!--<script src="https://unpkg.com/js-worker-search@1.1.2/dist/js-worker-search.js"></script>-->
+  <!--<script src="https://unpkg.com/lunr@2.0.3/lunr.js"></script>-->
+  <!--<script src="https://unpkg.com/lunr-languages@1.0.0/lunr.stemmer.support.js"></script>
+  <script src="https://unpkg.com/lunr-languages@1.0.0/lunr.pt.js"></script>-->
+  <!--<script src="http://127.0.0.1:8001/lunr.stemmer.support.js"></script>
+  <script src="http://127.0.0.1:8001/lunr.pt.js"></script>-->
   <script>
   $( function() {
+
+    var ajeitaAcentos = function (stringona) {
+      return stringona
+          .replace('á', 'a')
+          .replace('â', 'a')
+          .replace('ã', 'a')
+          .replace('é', 'e')
+          .replace('ê', 'e')
+          .replace('í', 'i')
+          .replace('ó', 'o')
+          .replace('õ', 'o')
+          .replace('ô', 'o')
+          .replace('ú', 'u')
+          .replace('Á', 'A')
+          .replace('Â', 'A')
+          .replace('Ã', 'A')
+          .replace('É', 'E')
+          .replace('Ê', 'E')
+          .replace('Í', 'I')
+          .replace('Ó', 'O')
+          .replace('Ô', 'O')
+          .replace('Õ', 'O')
+          .replace('Ú', 'U');
+          }
+    
+    var tokenizer_do_tiago = function (stringona) {
+      var REGEX = /[^a-zа-яё0-9\-']+/i;
+      return ajeitaAcentos(stringona)
+        .split(REGEX)
+        .filter(
+          function(text) {return text} // Para filtrar tokens vazios
+        )
+    }
+    
+
+  //   var ajeitaAcentos = function (builder) {
+
+  //   // Define a pipeline function that converts 'gray' to 'grey'
+  //   var pipelineFunction = function (token) {
+  // //       return token.update(function () { return token.toString()
+  //         .replace('á', 'a')
+  //         .replace('â', 'a')
+  //         .replace('ã', 'a')
+  //         .replace('é', 'e')
+  //         .replace('ê', 'e')
+  //         .replace('í', 'i')
+  //         .replace('ó', 'o')
+  //         .replace('õ', 'o')
+  //         .replace('ô', 'o')
+  //         .replace('ú', 'u')
+  //         .replace('Á', 'A')
+  //         .replace('Â', 'A')
+  //         .replace('Ã', 'A')
+  //         .replace('É', 'E')
+  //         .replace('Ê', 'E')
+  //         .replace('Í', 'I')
+  //         .replace('Ó', 'O')
+  //         .replace('Ô', 'O')
+  //         .replace('Õ', 'O')
+  //         .replace('Ú', 'U'); })
+  //   }
+
+  //   // Register the pipeline function so the index can be serialised
+  //   lunr.Pipeline.registerFunction(pipelineFunction, 'ajeitaAcentos')
+
+  //   // Add the pipeline function to both the indexing pipeline and the
+  //   // searching pipeline
+  //   builder.pipeline.before(lunr.stemmer, pipelineFunction)
+  //   builder.searchPipeline.before(lunr.stemmer, pipelineFunction)
+  // }
+
+
+
     dados_galerinha = null;
+    lunr_busca = 0;
     names = [];
     treta = $.getJSON('teste.json', function(data) {
+      console.log('Entrou no getJSON');
       dados_galerinha = data;
-      jQuery.each(data, function(index, value) {
-        names.push(value.Nome);
-      });
-    });
-    // var names = [ "Jörn Zaefferer", "Scott González", "John Resig" ];
- 
-    var accentMap = {
-      "á": "a",
-      "à": "a",
-      "ã": "a",
-      "é":"e",
-      "ê":"e",
-      "ô":"o",
-      "õ":"o",
-      "ç":"c"
-    };
-    var normalize = function( term ) {
-      var ret = "";
-      for ( var i = 0; i < term.length; i++ ) {
-        ret += accentMap[ term.charAt(i) ] || term.charAt(i);
-      }
-      // ret = ret.replace(/\b(dos|das)\b/i, 'dos');
+      search = new JsSearch.Search('Nome');
+      search.tokenizer = {tokenize: tokenizer_do_tiago};
+      // search.indexStrategy = new JsSearch.PrefixIndexStrategy();
+      search.addIndex('Nome');
+      search.addDocuments(dados_galerinha);
+      // dados_galerinha.forEach(function (doc) {
+      //   search.addDocuments
+      // });
 
-      // ret = ret.replace(/\b(de|do|da)\b/i, 'de');
-      return ret;
-    };
- 
-    $( "#developer" ).autocomplete({
+
+      // lunr_busca = lunr(function() {
+      //   console.log('Entrou no montador do lunr_busca');
+      //   this.use(ajeitaAcentos);
+      //   // this.use(lunr.pt);
+      //   this.ref('Nome');
+      //   this.field('Nome');
+      //   dados_galerinha.forEach(function (doc) {
+      //     this.add(doc)
+      //   }, this)
+      // });
+      // jQuery.each(data, function(index, value) {
+      //   names.push(value.Nome);
+      // });
+    });
+    
+    $('#developer').autocomplete({
       minLength: 4,
-      source: function( request, response ) {
-        console.log(request.term);
-        var matcher = new RegExp( $.ui.autocomplete.escapeRegex( request.term ), "i" );
-        response( $.grep( names, function( value ) {
-          value = value.label || value.value || value;
-          return matcher.test( value ) || matcher.test( normalize( value ) );
-        }) );
+      source: function(request, response) {
+        var resposta = search.search(request.term);
+        console.dir(resposta);
+        var resposta_com_fucking_items = resposta.map(function (e) {return e.Nome});
+        console.dir(resposta_com_fucking_items);
+        response(resposta_com_fucking_items.slice(0,25));
       }
     });
   } );
